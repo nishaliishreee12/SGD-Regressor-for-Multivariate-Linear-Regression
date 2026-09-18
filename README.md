@@ -8,58 +8,93 @@ To write a program to predict the price of the house and number of occupants in 
 2. Anaconda – Python 3.7 Installation / Jupyter notebook
 
 ## Algorithm
- Step 1: Read the dataset (house.csv)
- 
- Step 2: Select inputs (Size, Bedrooms) and outputs (Price, Occupants)
- 
- Step 3: Scale the input data
- 
- Step 4: Train two models (one for price, one for occupants)
- 
- Step 5: Take user input and predict results
+1. Load and preprocess the California Housing dataset by selecting input features and two output variables, then split the data into training and testing sets.
+
+2. Scale the training and testing data using StandardScaler to bring the features and target values to a common scale.
+
+3. Train the models using MultiOutputRegressor with SGDRegressor, and also train separate LinearRegression and SGDRegressor models.
+
+4. Predict and evaluate the results by generating predictions on the test data and converting the scaled predictions back to the original scale.
+   
+
 ## Program:
 ```
-
+/*
 Program to implement the multivariate linear regression model for predicting the price of the house and number of occupants in the house with SGD regressor.
-Developed by: Mithun Kumar V
-RegisterNumber:  212225040236
+Developed by: KARANKUMAR K
+RegisterNumber:212225040171
 
+import numpy as np
 
-import pandas as pd
-from sklearn.linear_model import SGDRegressor
+from sklearn.datasets import fetch_california_housing
+from sklearn.linear_model import SGDRegressor, LinearRegression
+from sklearn.multioutput import MultiOutputRegressor
+from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import StandardScaler
+from sklearn.metrics import mean_squared_error
 
-data = pd.read_csv("house.csv")
-data.columns = data.columns.str.strip()
-X = data[['Size', 'Bedrooms']]
+housing = fetch_california_housing()
 
-y_price = data['Price']
-y_occ = data['Occupants']
+X = housing.data[:, :3]
 
-scaler = StandardScaler()
-X_scaled = scaler.fit_transform(X)
+Y = np.column_stack((housing.target, housing.data[:, 6]))
 
-price_model = SGDRegressor(max_iter=1000, learning_rate='constant', eta0=0.01)
-occ_model = SGDRegressor(max_iter=1000, learning_rate='constant', eta0=0.01)
+X_train, X_test, Y_train, Y_test = train_test_split(
+    X, Y,
+    test_size=0.2,
+    random_state=42
+)
 
-price_model.fit(X_scaled, y_price)
-occ_model.fit(X_scaled, y_occ)
+scaler_X = StandardScaler()
+scaler_Y = StandardScaler()
 
-size = float(input("Enter house size: "))
-bed = int(input("Enter number of bedrooms: "))
+X_train_scaled = scaler_X.fit_transform(X_train)
+X_test_scaled = scaler_X.transform(X_test)
 
-new_data = scaler.transform([[size, bed]])
+Y_train_scaled = scaler_Y.fit_transform(Y_train)
 
-pred_price = price_model.predict(new_data)
-pred_occ = occ_model.predict(new_data)
 
-print("Predicted Price:", pred_price[0])
-print("Predicted Occupants:", round(pred_occ[0]))
+sgd = SGDRegressor(max_iter=1000, tol=1e-3, random_state=42)
+model = MultiOutputRegressor(sgd)
 
+model.fit(X_train_scaled, Y_train_scaled)
+
+Y_pred_scaled = model.predict(X_test_scaled)
+Y_pred = scaler_Y.inverse_transform(Y_pred_scaled)
+
+
+print("Actual Values:")
+print(Y_test[:10]) 
+
+print("\nPredicted Values:")
+print(Y_pred[:10]) 
+
+y = housing.target
+
+X_train, X_test, y_train, y_test = train_test_split(
+    X,
+    y,
+    test_size=0.2,
+    random_state=42
+)
+
+X_train = scaler_X.fit_transform(X_train)
+X_test = scaler_X.transform(X_test)
+
+lr = LinearRegression()
+lr.fit(X_train, y_train)
+lr_pred = lr.predict(X_test)
+
+sgd = SGDRegressor(max_iter=1000, tol=1e-3, random_state=42)
+sgd.fit(X_train, y_train)
+sgd_pred = sgd.predict(X_test)
+
+*/
 ```
 
 ## Output:
-<img width="1374" height="85" alt="image" src="https://github.com/user-attachments/assets/143c69a4-cf11-42bd-aa4a-4a45bf4385e0" />
+
+<img width="354" height="426" alt="image" src="https://github.com/user-attachments/assets/f57e7633-eaee-4867-9d00-736d716446fd" />
 
 
 ## Result:
